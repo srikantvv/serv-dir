@@ -16,10 +16,12 @@
     <b>End: </b>
     <input id="end" type="textbox" value="Hyderabad, Telangana">
       <input type="button" value="Directions" onclick="calcOneRoute();">    
-      <input type="button" value="Show My DB" onclick="populateMap();">    
+      <input type="button" value="Show My step DB" onclick="populateStepMap();">    
+      <input type="button" value="Show My road DB" onclick="populateRoadMap();">    
+      <input type="button" value="Show My rel DB" onclick="populateRelMap();">    
+    <input id="enc_path" type="textbox" value="">
+      <input type="button" value="ShowthisPoly" onclick="showthisPoly();">    
     <b>Find with lat: </b>
-    <input id="searchLat" type="textbox" value="0.0">
-      <input type="button" value="search" onclick="searchLat();">    
     <input type="button" value="Start Populating" onclick="startPopulate();">
     </div>
     <div id="ratings-panel">

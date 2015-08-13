@@ -109,6 +109,7 @@ function addRoads(startLat, startLng, midLatLng, endLat, endLng, encodeString, s
 				"start_lng" : startLng,
 				"end_lat" : endLat,
 				"end_lng" : endLng,
+				"enc_path" : encodeString,
 				"headsign" : headsign
 			}
 			$.ajax({
@@ -151,6 +152,7 @@ function addRoads(startLat, startLng, midLatLng, endLat, endLng, encodeString, s
 				"start_lng" : startLng,
 				"end_lat" : endLat,
 				"end_lng" : endLng,
+				"enc_path" : encodeString,
 				"headsign" : headsign
 			}
 			$.ajax({
@@ -230,6 +232,7 @@ function addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, st
 	var roadID = 0;
 	var errFlag = 0;
 	var isRel = 0;
+	var encPath = 0;
 	// If it is, compile all user info into one object
 	var searchStep = {
 		"start_lat_min" : startLatMinS,
@@ -244,10 +247,9 @@ function addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, st
 		"start_lng" : startLng,
 		"end_lat" : endLat,
 		"end_lng" : endLng,
-		"mid_path" : midLatLng,
-		"distance" : stepDis,
-		"headsign" : headsign
+		mid_path : midLatLng
 	}
+
 	// Use AJAX to post the object to our adduser service
 	$.ajax({
 	    type: 'POST',
@@ -261,9 +263,13 @@ function addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, st
 			if (roadID == 0) {
 				isRel = this.is_rel;
 				roadID = this.road_id;
+				encPath = this.enc_path;
 			} else {
 				if (roadID != this.road_id) {
 					console.log("Error in %s %s", roadID, this.road_id);
+					showPoly(encPath);
+					showPoly(this.enc_path);
+					showPoly(encodeString);
 					errFlag = 1;
 				}
 			}
@@ -361,21 +367,32 @@ function showPoly(encoded) {
 	
 }
 
-function populateMap() {
-
-    // Empty content string
-
-    // jQuery AJAX call for JSON
+function populateStepMap() {
     $.getJSON( '/steplist', function( data ) {
-
-        // For each item in our JSON, add a table row and cells to the content string
         $.each(data, function(){
 	    encodedPoly = this.enc_path;
 	    showPoly(encodedPoly);
         });
-
     });
 };
+
+function populateRoadMap() {
+    $.getJSON( '/roadlist', function( data ) {
+        $.each(data, function(){
+	    encodedPoly = this.enc_path;
+	    showPoly(encodedPoly);
+        });
+    });
+};
+
+function populateRelMap() {
+    $.getJSON( '/rellist', function( data ) {
+        $.each(data, function(){
+	    encodedPoly = this.enc_path;
+	    showPoly(encodedPoly);
+        });
+    });
+}
 
 function wrapper(legno, start, end) {
 		var n = legno;
@@ -413,8 +430,8 @@ function calcRoute(start, end) {
 			var encodeString = google.maps.geometry.encoding.encodePath(path);
 			var midLatLng = [];
 			var mid = Math.ceil(path.length/2);
-			var midMin = mid - 30;
-			var midMax = mid + 30;
+			var midMin = mid - 10;
+			var midMax = mid + 10;
 			var j = 0;
 			for(var k = midMin; k < midMax; k++) {
 				midLatLng[j] = path[k].toUrlValue();
@@ -443,6 +460,11 @@ function startPopulate() {
 
     });
 	alert("It's over");
+}
+
+function showthisPoly() {
+	var enc_path = document.getElementById('enc_path').value;
+	showPoly(enc_path);
 }
 
 function calcOneRoute() {

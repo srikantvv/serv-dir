@@ -116,6 +116,21 @@ router.get('/steplist', function(req, res) {
     });
 });
 
+router.get('/roadlist', function(req, res) {
+    var db = req.db;
+    var collection = db.get('roadlist');
+    collection.find({},{},function(e,docs){
+        res.json(docs);
+    });
+});
+router.get('/rellist', function(req, res) {
+    var db = req.db;
+    var collection = db.get('rellist');
+    collection.find({},{},function(e,docs){
+        res.json(docs);
+    });
+});
+
 router.get('/highlist', function(req, res) {
     var db = req.db;
     var collection = db.get('highlist');
@@ -128,7 +143,6 @@ router.get('/highlist', function(req, res) {
 router.post('/stepentry', function(req, res) {
     var db = req.db;
     var collection = db.get('steplist');
-    console.log(req.body);
     collection.find(
 	{
 		"$or": [
@@ -137,17 +151,20 @@ router.post('/stepentry', function(req, res) {
 			 "start_lng": {$gte:req.body.start_lng_min, $lte:req.body.start_lng_max},
 			 "end_lat": {$gte:req.body.end_lat_min, $lte:req.body.end_lat_max},
 			 "end_lng": {$gte:req.body.end_lng_min, $lte:req.body.end_lng_max},
+			 mid_path: {$in :[req.body.mid_path]}
 			},
 			{
 			 "start_lat": {$gte:req.body.end_lat_min, $lte:req.body.end_lat_max},
 			 "start_lng": {$gte:req.body.end_lng_min, $lte:req.body.end_lng_max},
 			 "end_lat": {$gte:req.body.start_lat_min, $lte:req.body.start_lat_max},
 			 "end_lng": {$gte:req.body.start_lng_min, $lte:req.body.start_lng_max},
+			 mid_path: {$in :[req.body.mid_path]}
 			},
 		]
 
 	},
 	{},function(e,docs){
+	console.log(e);
         res.json(docs);
     });
 });
