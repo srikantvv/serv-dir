@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Directions service</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script> 
+    <script src="/javascripts/global.js"></script> 
+  </head>
+  <body>
+    <div id="control">
+    <b>Start: </b>
+    <input id="start" type="textbox" value="Bangalore, Karnataka">
+    <b>End: </b>
+    <input id="end" type="textbox" value="Hyderabad, Telangana">
+      <input type="button" value="Directions" onclick="calcOneRoute();">    
+      <input type="button" value="Show My DB" onclick="populateMap();">    
+    <b>Find with lat: </b>
+    <input id="searchLat" type="textbox" value="0.0">
+      <input type="button" value="search" onclick="searchLat();">    
+    <input type="button" value="Start Populating" onclick="startPopulate();">
+    </div>
+    <div id="ratings-panel">
+    </div>
+    <div id="map-canvas"></div>
+  </body>
+</html>
