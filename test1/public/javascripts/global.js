@@ -387,9 +387,7 @@ function roadToRel() {
 	    url: '/findroad',
 	    dataType: 'JSON'
 	}).done(function( data ) {
-		console.log("Here");
 		$.each(data, function(){
-			console.log(this);
 			genRelID = generateUid();
 			addRel(this.start_lat, this.start_lng, this.end_lat, this.end_lng, this.enc_path, this.distance, this.headsign, genRelID);
 			var changeStep= {
@@ -536,7 +534,8 @@ function showthisPoly() {
 function calcOneRoute() {
 	var start = document.getElementById('start').value;
   	var end = document.getElementById('end').value;
-	calcRoute(start, end);
+	wrapper(0,start, end);
+	wrapper(1,end, start);
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
