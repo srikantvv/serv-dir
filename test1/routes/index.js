@@ -1,5 +1,8 @@
 var express = require('express');
 var router = express.Router();
+var ObjectId = require('mongodb').ObjectID;
+var assert = require('assert');
+
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -116,10 +119,29 @@ router.get('/steplist', function(req, res) {
     });
 });
 
+router.post('/findroad', function(req, res) {
+    var db = req.db;
+    var collection = db.get('roadlist');
+    // Create a new ObjectID
+    var objectId = ObjectId(req.body._id);
+    console.log(objectId);
+    collection.find(
+	{
+		"_id": objectId
+	},{
+	},function(e,docs){
+	console.log(e);
+        res.json(docs);
+    });
+});
+
 router.get('/roadlist', function(req, res) {
     var db = req.db;
     var collection = db.get('roadlist');
-    collection.find({},{},function(e,docs){
+    collection.find(
+	{
+		"checked": "0"
+	},{},function(e,docs){
         res.json(docs);
     });
 });
@@ -162,6 +184,47 @@ router.post('/stepentry', function(req, res) {
 			},
 		]
 
+	},
+	{},function(e,docs){
+        res.json(docs);
+    });
+});
+
+router.post('/samestep', function(req, res) {
+    var db = req.db;
+    var collection = db.get('steplist');
+    collection.find(
+	{
+		"road_id": req.body.road_id
+	},
+	{},function(e,docs){
+	console.log(e);
+        res.json(docs);
+    });
+});
+
+router.post('/changestep', function(req, res) {
+    var db = req.db;
+    var collection = db.get('steplist');
+    collection.findAndModify(
+	{
+		"road_id": req.body.road_id
+	},
+	{
+		$set:{"road_id":req.body.new_road_id, "is_rel": req.body.is_rel}
+	},function(e,docs){
+	console.log(e);
+        res.json(docs);
+    });
+});
+
+
+router.post('/getstep', function(req, res) {
+    var db = req.db;
+    var collection = db.get('steplist');
+    collection.find(
+	{
+		"enc_path": req.body.enc_path
 	},
 	{},function(e,docs){
 	console.log(e);

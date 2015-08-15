@@ -5,56 +5,24 @@ var csv = '';
 var sep = ";";
 var lsep = "\n";
 var flag = 0;
+var markersArray = [];
+var polyArray = [];
 
 function initialize() {
   directionsDisplay1 = new google.maps.DirectionsRenderer();
   directionsDisplay2 = new google.maps.DirectionsRenderer();
   directionsDisplay3 = new google.maps.DirectionsRenderer();
   var chicago = new google.maps.LatLng(22, 83);
-  var mapOptions = {
+  var mapOptions1 = {
     zoom:5,
     center: chicago
   };
-  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions1);
   directionsDisplay1.setMap(map)
 
   var control = document.getElementById('control');
   control.style.display = 'block';
   map.controls[google.maps.ControlPosition.TOP_CENTER].push(control);
-}
-
-function newStep(startLat, startLng, endLat, endLng, encodeString, stepDis) {
-	var dy = endLat - startLat;
-	var dx = endLng - startLng;
-	var headsign = 0;
-
-	if ( dx > 0 && dy >= 0 ) {
-		headsign = 1;
-	} else if ( dx <= 0 && dy > 0 ) {
-		headsign = 2;
-	} else if ( dx < 0 && dy <= 0 ) {
-		headsign = 3;
-	} else if ( dx >= 0 && dy < 0 ) {
-		headsign = 4;
-	}
-	var newStep = {
-		"start_lat" : startLat,
-		"start_lng" : startLng,
-		"end_lat" : endLat,
-		"end_lng" : endLng,
-		"enc_path" : encodeString,
-		"distance" : stepDis,
-		"headsign" : headsign
-	}
-	// Use AJAX to post the object to our adduser service
-		$.ajax({
-		    type: 'POST',
-		    data: newStep,
-		    url: '/addstep',
-		    dataType: 'JSON'
-		}).done(function( data ) {
-			
-		});
 }
 
 var generateUid = function (separator) {
@@ -71,127 +39,103 @@ var generateUid = function (separator) {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
     }
 
-    return (S4() + S4() + S4() + S4() + S4() + S4() + S4() + S4());
+    return (S4() + S4() + S4() + S4() + S4() + S4());
 };
 
-function addRoads(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis, headsign, errFlag, roadID, isRel)
+function addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis, headsign, isRel, roadID) {
+	var newStep = {
+		"start_lat" : startLat,
+		"start_lng" : startLng,
+		"end_lat" : endLat,
+		"end_lng" : endLng,
+		"enc_path" : encodeString,
+		"mid_path" : midLatLng,
+		"distance" : stepDis,
+		"headsign" : headsign,
+		"is_rel" : isRel,
+		"road_id" : roadID
+	}
+
+	$.ajax({
+	    type: 'POST',
+	    data: newStep,
+	    url: '/addstep',
+	    dataType: 'JSON'
+	}).done(function( data ) {
+		$.each(data, function(){
+
+		});
+	});
+}
+
+function addRoad(startLat, startLng, endLat, endLng, encodeString, stepDis, headsign, genRoadID) {
+	var newRoad = {
+		"_id" : genRoadID,
+		"start_lat" : startLat,
+		"start_lng" : startLng,
+		"end_lat" : endLat,
+		"end_lng" : endLng,
+		"enc_path" : encodeString,
+		"distance": stepDis,
+		"checked" : 0,
+		"headsign" : headsign
+	}
+	$.ajax({
+	    type: 'POST',
+	    data: newRoad,
+	    url: '/addroad',
+	    dataType: 'JSON'
+	}).done(function( data ) {
+		$.each(data, function(){
+		});
+	});
+}
+
+function addRel(startLat, startLng, endLat, endLng, encodeString, stepDis, headsign, genRelID) {
+	var newRel = {
+		"_id" : genRelID,
+		"start_lat" : startLat,
+		"start_lng" : startLng,
+		"end_lat" : endLat,
+		"end_lng" : endLng,
+		"enc_path" : encodeString,
+		"distance": stepDis,
+		"checked" : 0,
+		"headsign" : headsign
+	}
+	$.ajax({
+	    type: 'POST',
+	    data: newRel,
+	    url: '/addrel',
+	    dataType: 'JSON'
+	}).done(function( data ) {
+		$.each(data, function(){
+		});
+	});
+}
+
+	
+
+function addEntry(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis, headsign, errFlag, roadID, isRel)
 {
 	if (errFlag == 0) {
 		if(roadID) {
-			var newStep = {
-				"start_lat" : startLat,
-				"start_lng" : startLng,
-				"end_lat" : endLat,
-				"end_lng" : endLng,
-				"enc_path" : encodeString,
-				"mid_path" : midLatLng,
-				"distance" : stepDis,
-				"headsign" : headsign,
-				"is_rel" : isRel,
-				"road_id" : roadID
-			}
-
-			$.ajax({
-			    type: 'POST',
-			    data: newStep,
-			    url: '/addstep',
-			    dataType: 'JSON'
-			}).done(function( data ) {
-				$.each(data, function(){
-
-				});
-			});
+			addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis, headsign, isRel, roadID);
 		} else if(stepDis < 100000) {
 			genRoadID = generateUid();
-			var newRoad = {
-				"_id" : genRoadID,
-				"start_lat" : startLat,
-				"start_lng" : startLng,
-				"end_lat" : endLat,
-				"end_lng" : endLng,
-				"enc_path" : encodeString,
-				"headsign" : headsign
-			}
-			$.ajax({
-			    type: 'POST',
-			    data: newRoad,
-			    url: '/addroad',
-			    dataType: 'JSON'
-			}).done(function( data ) {
-				$.each(data, function(){
-				});
-			});
-
-			var newStep = {
-				"start_lat" : startLat,
-				"start_lng" : startLng,
-				"end_lat" : endLat,
-				"end_lng" : endLng,
-				"enc_path" : encodeString,
-				"mid_path" : midLatLng,
-				"distance" : stepDis,
-				"headsign" : headsign,
-				"is_rel" : 0,
-				"road_id" : genRoadID
-			}
-
-			$.ajax({
-			    type: 'POST',
-			    data: newStep,
-			    url: '/addstep',
-			    dataType: 'JSON'
-			}).done(function( data ) {
-				$.each(data, function(){
-				});
-			});
+			isRel = 0;
+			addRoad(startLat, startLng, endLat, endLng, encodeString, stepDis, headsign, genRoadID)
+			addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis, headsign, isRel, genRoadID);
 		} else {
 			genRelID = generateUid();
-			var newRoad = {
-				"_id" : genRelID,
-				"start_lat" : startLat,
-				"start_lng" : startLng,
-				"end_lat" : endLat,
-				"end_lng" : endLng,
-				"enc_path" : encodeString,
-				"headsign" : headsign
-			}
-			$.ajax({
-			    type: 'POST',
-			    data: newRoad,
-			    url: '/addrel',
-			    dataType: 'JSON'
-			}).done(function( data ) {
-				$.each(data, function(){
-				});
-			});
-
-			var newStep = {
-				"start_lat" : startLat,
-				"start_lng" : startLng,
-				"end_lat" : endLat,
-				"end_lng" : endLng,
-				"enc_path" : encodeString,
-				"mid_path" : midLatLng,
-				"distance" : stepDis,
-				"headsign" : headsign,
-				"is_rel" : 1,
-				"road_id" : genRelID
-			}
-
-			$.ajax({
-			    type: 'POST',
-			    data: newStep,
-			    url: '/addstep',
-			    dataType: 'JSON'
-			}).done(function( data ) {
-				$.each(data, function(){
-				});
-			});
+			isRel = 1;
+			addRel(startLat, startLng, endLat, endLng, encodeString, stepDis, headsign, genRelID);
+			addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis, headsign, isRel, genRelID);
 		}
 	}
 }
 
-function addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis) {
+function solveEntry(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis) {
 
 	var dy = endLat - startLat;
 	var dx = endLng - startLng;
@@ -206,15 +150,24 @@ function addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, st
 	} else if ( dx >= 0 && dy < 0 ) {
 		headsign = 4;
 	}
-	var startLatMin = startLat - 0.2;
-	var startLatMax = startLat + 0.2;
-	var startLngMin = startLng - 0.2;
-	var startLngMax = startLng + 0.2;
+	var disUpperLimit = 100;
+	var disLowerLimit = 10;
+	var deltaUpper = 0.2;
+	var deltaLower = 0.05;
+	var stepKm = stepDis/1000;
+	var slope = (deltaUpper - deltaLower)/(disUpperLimit - disLowerLimit);
+	var llDelta = (slope * (stepKm - disLowerLimit)) + deltaLower;
+	if (stepDis > 100000)
+		llDelta = deltaUpper;
+	var startLatMin = startLat - llDelta;
+	var startLatMax = startLat + llDelta;
+	var startLngMin = startLng - llDelta;
+	var startLngMax = startLng + llDelta;
 	
-	var endLatMin = endLat - 0.2;
-	var endLatMax = endLat + 0.2;
-	var endLngMin = endLng - 0.2;
-	var endLngMax = endLng + 0.2;
+	var endLatMin = endLat - llDelta;
+	var endLatMax = endLat + llDelta;
+	var endLngMin = endLng - llDelta;
+	var endLngMax = endLng + llDelta;
 
 	var startLatLngMin = new google.maps.LatLng(startLatMin,startLngMin);
 	var startLatLngMax = new google.maps.LatLng(startLatMax,startLngMax);
@@ -266,130 +219,204 @@ function addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, st
 				encPath = this.enc_path;
 			} else {
 				if (roadID != this.road_id) {
-					console.log("Error in %s %s", roadID, this.road_id);
-					showPoly(encPath);
-					showPoly(this.enc_path);
-					showPoly(encodeString);
+					alert("Error in %s %s", roadID, this.road_id);
+					showPoly(encPath, true);
+					showPoly(this.enc_path, true);
+					showPoly(encodeString, true);
 					errFlag = 1;
 				}
 			}
 		});
-		addRoads(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis, headsign, errFlag, roadID, isRel);
+		addEntry(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis, headsign, errFlag, roadID, isRel);
 	});
 };
 
-function getInfoEncodedPath(startLat, startLng) {
-	startLat = Math.round(startLat * 100000) / 100000;
-	startLng = Math.round(startLng * 100000) / 100000;
-	var step = {
-		"end_lat": startLat,
-		"end_lng": startLng
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+function clearOverlays(markers, polyline) {
+	if(markers) {
+		for (var i = 0; i < markersArray.length; i++ ) {
+			markersArray[i].setMap(null);
+		}
+		markersArray.length = 0;
+	}
+	if(polyline) {
+	  for (var i = 0; i < polyArray.length; i++ ) {
+	    polyArray[i].setMap(null);
+	  }
+	  polyArray.length = 0;
+	}
+}
+function searchThisStep(encodedString) {
+	var searchStep = {
+		"enc_path": encodedString
 	}
 	// Use AJAX to post the object to our adduser service
 	$.ajax({
-	    type: 'GET',
-	    data: step,
-	    url: '/stepnode',
-	    dataType: 'JSON'
-	}).done(function( response ) {
-	
-	    // Check for successful (blank) response
-	    if (response.msg === '') {
-	
-	    }
-	    else {
-	
-	    }
-	});
-
-	$.getJSON( '/stepnode', function( data ) {
-
-        // For each item in our JSON, add a table row and cells to the content string
-        $.each(data, function(){
-        });
-
-    });
-
-
-	
-}
-function createInfoWindow(poly) {
-	var infowindow = new google.maps.InfoWindow({
-	      content: "Clicked" 
-	});
-    google.maps.event.addListener(poly, 'click', function(event) {
-	var path = poly.getPath().getArray();
-	var startLat = path[0].lat();
-	var startLng = path[0].lng();
-	var marker = new google.maps.Marker({
-	      position: event.latLng,
-		map: map,
-		opacity: 1
-	  });
-	infowindow.open(map,marker);
-	getInfoEncodedPath(startLat, startLng);
-    });
-}
-
-function searchLat() {
-  var searchLat = document.getElementById('searchLat').value;
-
-	var step = {
-		"start_lat": searchLat
-	}
-
-	$.ajax({
 	    type: 'POST',
-	    data: step,
-	    url: '/stepentry',
+	    data: searchStep,
+	    url: '/getstep',
 	    dataType: 'JSON'
 	}).done(function( data ) {
 		$.each(data, function(){
-			showPoly(this.enc_path);
-			var marker = new google.maps.Marker({
-			      position: {lat: this.start_lat, lng: this.start_lng},
-			      map: map,
-			  });
+			 console.log(this.road_id);
 		});
+		
 	});
 }
 
-function showPoly(encoded) {
+function createInfoWindow(poly) {
+	google.maps.event.addListener(poly, 'click', function(event) {
+		var path = poly.getPath();
+		var encodeString = google.maps.geometry.encoding.encodePath(path);
+		searchThisStep(encodeString);
+		clearOverlays(true, false);
+		var infowindow = new google.maps.InfoWindow({
+			content: "Clicked"
+		});
+		var marker = new google.maps.Marker({
+			position: event.latLng,
+			map: map,
+			opacity: 1
+		});
+		markersArray.push(marker);
+		infowindow.open(map,marker);
+		
+	});
+}
+
+function showPoly(encoded, needMarker, needZoom) {
 	var decodedPath0 = google.maps.geometry.encoding.decodePath(encoded);
+	var bounds = new google.maps.LatLngBounds();
+	for (var i = 0; i < decodedPath0.length; i++) {
+		bounds.extend(decodedPath0[i]);
+	}
+	if(needZoom) {
+		map.fitBounds(bounds);
+	}
 	setRegion0 = new google.maps.Polyline({
 		path: decodedPath0,
-		strokeColor: "#FF2200",
+		strokeColor: getRandomColor(),
 		strokeOpacity: 1.0,
 		strokeWeight: 2,
 		map: map
 	});
 	createInfoWindow(setRegion0);
-	
+	if (needMarker) {
+	var smarker = new google.maps.Marker({
+	 	position: decodedPath0[0],
+		map: map,
+		opacity: 1
+	  });
+	var emarker = new google.maps.Marker({
+	 	position: decodedPath0[decodedPath0.length - 1],
+		map: map,
+		opacity: 0.4
+	  });
+	markersArray.push(smarker);
+	markersArray.push(emarker);
+	}
+	polyArray.push(setRegion0);
 }
 
+function showSteps() {
+	clearOverlays(true, true);
+	var road_id = document.getElementById('roadid').value;
+	var searchStep = {
+		"road_id": road_id
+	}
+
+	// Use AJAX to post the object to our adduser service
+	$.ajax({
+	    type: 'POST',
+	    data: searchStep,
+	    url: '/samestep',
+	    dataType: 'JSON'
+	}).done(function( data ) {
+		$.each(data, function(){
+			showPoly(this.enc_path, true, true);
+		});
+	});
+
+}
+
+function roadToRel() {
+	var roadID= document.getElementById('roadtorel').value;
+	var searchRoad= {
+		"_id": roadID
+	}
+
+	// Use AJAX to post the object to our adduser service
+	$.ajax({
+	    type: 'POST',
+	    data: searchRoad,
+	    url: '/findroad',
+	    dataType: 'JSON'
+	}).done(function( data ) {
+		console.log("Here");
+		$.each(data, function(){
+			console.log(this.start_lat);
+			genRelID = generateUid();
+			addRel(this.start_lat, this.start_lng, this.end_lat, this.end_lng, this.enc_path, this.distance, this.headsign, genRelID);
+			var changeStep= {
+				"road_id": roadID,
+				"new_road_id": genRelID,
+				"is_rel" : 1,
+			}
+			$.ajax({
+			    type: 'POST',
+			    data: changeStep,
+			    url: '/changestep',
+			    dataType: 'JSON'
+			}).done(function( data ) {
+			});
+		});
+	});
+
+}
+function getAllRoads() {
+	clearOverlays(true, true);	
+     	var summaryPanel = document.getElementById('ratings-panel');
+    $.getJSON( '/roadlist', function( data ) {
+        $.each(data, function(){
+	summaryPanel.innerHTML += this._id + '<br>';
+        });
+    });
+};
+
 function populateStepMap() {
+	clearOverlays(true, true);	
     $.getJSON( '/steplist', function( data ) {
         $.each(data, function(){
 	    encodedPoly = this.enc_path;
-	    showPoly(encodedPoly);
+	    showPoly(encodedPoly, false);
         });
     });
 };
 
 function populateRoadMap() {
+	clearOverlays(true, true);	
     $.getJSON( '/roadlist', function( data ) {
         $.each(data, function(){
 	    encodedPoly = this.enc_path;
-	    showPoly(encodedPoly);
+	    showPoly(encodedPoly, true);
         });
     });
 };
 
 function populateRelMap() {
+	clearOverlays(true, true);	
     $.getJSON( '/rellist', function( data ) {
         $.each(data, function(){
 	    encodedPoly = this.enc_path;
-	    showPoly(encodedPoly);
+	    showPoly(encodedPoly, false);
         });
     });
 }
@@ -437,7 +464,7 @@ function calcRoute(start, end) {
 				midLatLng[j] = path[k].toUrlValue();
 				j++;
 			}
-			addStep(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis);
+			solveEntry(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis);
 			summaryPanel.innerHTML += legseg + startLat + endLat + '<br>';
 		}
 	}
@@ -464,7 +491,7 @@ function startPopulate() {
 
 function showthisPoly() {
 	var enc_path = document.getElementById('enc_path').value;
-	showPoly(enc_path);
+	showPoly(enc_path, true);
 }
 
 function calcOneRoute() {
