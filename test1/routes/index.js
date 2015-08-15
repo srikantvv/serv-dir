@@ -15,6 +15,7 @@ router.post('/addroad', function(req, res) {
 	var startLng = req.body.start_lng;
 	var endLat = req.body.end_lat;
 	var endLng = req.body.end_lng;
+	req.body._id = ObjectId(req.body._id); 
 	var collection = db.get('roadlist');
 
 	collection.update(
@@ -119,22 +120,6 @@ router.get('/steplist', function(req, res) {
     });
 });
 
-router.post('/findroad', function(req, res) {
-    var db = req.db;
-    var collection = db.get('roadlist');
-    // Create a new ObjectID
-    var objectId = ObjectId(req.body._id);
-    console.log(objectId);
-    collection.find(
-	{
-		"_id": objectId
-	},{
-	},function(e,docs){
-	console.log(e);
-        res.json(docs);
-    });
-});
-
 router.get('/roadlist', function(req, res) {
     var db = req.db;
     var collection = db.get('roadlist');
@@ -190,6 +175,33 @@ router.post('/stepentry', function(req, res) {
     });
 });
 
+router.post('/findroad', function(req, res) {
+    var db = req.db;
+    var collection = db.get('roadlist');
+    var objectId = ObjectId(req.body._id);
+    collection.find(
+	{
+		"_id": objectId
+	},
+	{},function(e,docs){
+	console.log(docs);
+        res.json(docs);
+    });
+});
+
+router.delete('/deleteroad', function(req, res) {
+	var db = req.db;
+	var collection = db.get('roadlist');
+    	var objectId = ObjectId(req.body._id);
+	collection.remove(
+	{
+		"_id": objectId
+	},
+	{},function(e,docs){
+	res.json(docs);
+	});
+});
+
 router.post('/samestep', function(req, res) {
     var db = req.db;
     var collection = db.get('steplist');
@@ -219,9 +231,9 @@ router.post('/changestep', function(req, res) {
 });
 
 
-router.post('/getstep', function(req, res) {
+router.post('/getroad', function(req, res) {
     var db = req.db;
-    var collection = db.get('steplist');
+    var collection = db.get('roadlist');
     collection.find(
 	{
 		"enc_path": req.body.enc_path

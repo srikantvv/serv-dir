@@ -254,19 +254,19 @@ function clearOverlays(markers, polyline) {
 	  polyArray.length = 0;
 	}
 }
-function searchThisStep(encodedString) {
-	var searchStep = {
+function searchThisRoad(encodedString) {
+	var searchRoad = {
 		"enc_path": encodedString
 	}
 	// Use AJAX to post the object to our adduser service
 	$.ajax({
 	    type: 'POST',
-	    data: searchStep,
-	    url: '/getstep',
+	    data: searchRoad,
+	    url: '/getroad',
 	    dataType: 'JSON'
 	}).done(function( data ) {
 		$.each(data, function(){
-			 console.log(this.road_id);
+			 console.log(this._id);
 		});
 		
 	});
@@ -276,18 +276,18 @@ function createInfoWindow(poly) {
 	google.maps.event.addListener(poly, 'click', function(event) {
 		var path = poly.getPath();
 		var encodeString = google.maps.geometry.encoding.encodePath(path);
-		searchThisStep(encodeString);
+		searchThisRoad(encodeString);
 		clearOverlays(true, false);
 		var infowindow = new google.maps.InfoWindow({
-			content: "Clicked"
+			content: "C"
 		});
 		var marker = new google.maps.Marker({
 			position: event.latLng,
 			map: map,
-			opacity: 1
+			opacity: 0
 		});
 		markersArray.push(marker);
-		infowindow.open(map,marker);
+		//infowindow.open(map,marker);
 		
 	});
 }
@@ -327,7 +327,7 @@ function showPoly(encoded, needMarker, needZoom) {
 }
 
 function showSteps() {
-	clearOverlays(true, true);
+	clearOverlays(false, true);
 	var road_id = document.getElementById('roadid').value;
 	var searchStep = {
 		"road_id": road_id
@@ -347,6 +347,33 @@ function showSteps() {
 
 }
 
+function subRoad() {
+	var subroadID= document.getElementById('subRoad').value;
+	var superroadID= document.getElementById('superRoad').value;
+	var changeStep = {
+		"road_id": subroadID,
+		"new_road_id": superroadID
+	}
+	$.ajax({
+	    type: 'POST',
+	    data: changeStep,
+	    url: '/changestep',
+	    dataType: 'JSON'
+	}).done(function( data ) {
+	});
+
+	var deleteRoad = {
+		"_id": subroadID
+	}
+	$.ajax({
+	    type: 'DELETE',
+	    data: deleteRoad,
+	    url: '/deleteroad',
+	    dataType: 'JSON'
+	}).done(function( data ) {
+	});
+}
+
 function roadToRel() {
 	var roadID= document.getElementById('roadtorel').value;
 	var searchRoad= {
@@ -362,7 +389,7 @@ function roadToRel() {
 	}).done(function( data ) {
 		console.log("Here");
 		$.each(data, function(){
-			console.log(this.start_lat);
+			console.log(this);
 			genRelID = generateUid();
 			addRel(this.start_lat, this.start_lng, this.end_lat, this.end_lng, this.enc_path, this.distance, this.headsign, genRelID);
 			var changeStep= {
@@ -377,6 +404,18 @@ function roadToRel() {
 			    dataType: 'JSON'
 			}).done(function( data ) {
 			});
+
+			var deleteRoad = {
+				"_id": roadID
+			}
+			$.ajax({
+			    type: 'DELETE',
+			    data: deleteRoad,
+			    url: '/deleteroad',
+			    dataType: 'JSON'
+			}).done(function( data ) {
+			});
+
 		});
 	});
 
