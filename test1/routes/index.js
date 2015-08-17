@@ -115,7 +115,38 @@ router.post('/addrel', function(req, res) {
 router.get('/steplist', function(req, res) {
     var db = req.db;
     var collection = db.get('steplist');
-    collection.find({},{},function(e,docs){
+    collection.find({
+	},{},function(e,docs){
+        res.json(docs);
+    });
+});
+
+router.get('/steplist2', function(req, res) {
+    var db = req.db;
+    var collection = db.get('steplist');
+    collection.find({
+		"headsign" : "2"	
+	},{},function(e,docs){
+        res.json(docs);
+    });
+});
+
+router.get('/steplist3', function(req, res) {
+    var db = req.db;
+    var collection = db.get('steplist');
+    collection.find({
+		"headsign" : "3"	
+	},{},function(e,docs){
+        res.json(docs);
+    });
+});
+
+router.get('/steplist4', function(req, res) {
+    var db = req.db;
+    var collection = db.get('steplist');
+    collection.find({
+		"headsign" : "4"	
+	},{},function(e,docs){
         res.json(docs);
     });
 });
@@ -189,6 +220,18 @@ router.post('/findroad', function(req, res) {
     });
 });
 
+router.delete('/deleterel', function(req, res) {
+	var db = req.db;
+	var collection = db.get('rellist');
+    	var objectId = ObjectId(req.body._id);
+	collection.remove(
+	{
+		"_id": objectId
+	},
+	{},function(e,docs){
+	res.json(docs);
+	});
+});
 router.delete('/deleteroad', function(req, res) {
 	var db = req.db;
 	var collection = db.get('roadlist');
@@ -233,7 +276,7 @@ router.post('/changestep', function(req, res) {
 
 router.post('/getroad', function(req, res) {
     var db = req.db;
-    var collection = db.get('roadlist');
+    var collection = db.get('steplist');
     collection.find(
 	{
 		"enc_path": req.body.enc_path

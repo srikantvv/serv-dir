@@ -219,7 +219,7 @@ function solveEntry(startLat, startLng, midLatLng, endLat, endLng, encodeString,
 				encPath = this.enc_path;
 			} else {
 				if (roadID != this.road_id) {
-					alert("Error in %s %s", roadID, this.road_id);
+					console.log("Error in %s %s", roadID, this.road_id);
 					showPoly(encPath, true);
 					showPoly(this.enc_path, true);
 					showPoly(encodeString, true);
@@ -266,7 +266,7 @@ function searchThisRoad(encodedString) {
 	    dataType: 'JSON'
 	}).done(function( data ) {
 		$.each(data, function(){
-			 console.log(this._id);
+			 console.log(this.road_id);
 		});
 		
 	});
@@ -347,6 +347,33 @@ function showSteps() {
 
 }
 
+function subRel() {
+	var subRelID= document.getElementById('subRel').value;
+	var superRelID= document.getElementById('superRel').value;
+	var changeStep = {
+		"road_id": subRelID,
+		"new_road_id": superRelID
+	}
+	$.ajax({
+	    type: 'POST',
+	    data: changeStep,
+	    url: '/changestep',
+	    dataType: 'JSON'
+	}).done(function( data ) {
+	});
+
+	var deleteRel = {
+		"_id": subRelID
+	}
+	$.ajax({
+	    type: 'DELETE',
+	    data: deleteRel,
+	    url: '/deleterel',
+	    dataType: 'JSON'
+	}).done(function( data ) {
+	});
+}
+
 function subRoad() {
 	var subroadID= document.getElementById('subRoad').value;
 	var superroadID= document.getElementById('superRoad').value;
@@ -388,12 +415,13 @@ function roadToRel() {
 	    dataType: 'JSON'
 	}).done(function( data ) {
 		$.each(data, function(){
-			genRelID = generateUid();
+			var genRelID = generateUid();
 			addRel(this.start_lat, this.start_lng, this.end_lat, this.end_lng, this.enc_path, this.distance, this.headsign, genRelID);
+			var isRel = 1;
 			var changeStep= {
 				"road_id": roadID,
 				"new_road_id": genRelID,
-				"is_rel" : 1,
+				"is_rel" : isRel,
 			}
 			$.ajax({
 			    type: 'POST',
@@ -431,6 +459,7 @@ function getAllRoads() {
 function populateStepMap() {
 	clearOverlays(true, true);	
     $.getJSON( '/steplist', function( data ) {
+	console.log(data.length);
         $.each(data, function(){
 	    encodedPoly = this.enc_path;
 	    showPoly(encodedPoly, false);
@@ -441,6 +470,7 @@ function populateStepMap() {
 function populateRoadMap() {
 	clearOverlays(true, true);	
     $.getJSON( '/roadlist', function( data ) {
+	console.log(data.length);
         $.each(data, function(){
 	    encodedPoly = this.enc_path;
 	    showPoly(encodedPoly, true);
@@ -519,6 +549,7 @@ function startPopulate() {
         // For each item in our JSON, add a table row and cells to the content string
         $.each(data, function(){
 		wrapper(count,this.start, this.end);
+		wrapper(count*2,this.start, this.end);
 		count++;
         });
 
