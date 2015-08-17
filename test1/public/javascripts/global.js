@@ -186,6 +186,7 @@ function solveEntry(startLat, startLng, midLatLng, endLat, endLng, encodeString,
 	var errFlag = 0;
 	var isRel = 0;
 	var encPath = 0;
+     	var defectPanel = document.getElementById('directions-panel');
 	// If it is, compile all user info into one object
 	var searchStep = {
 		"start_lat_min" : startLatMinS,
@@ -219,11 +220,18 @@ function solveEntry(startLat, startLng, midLatLng, endLat, endLng, encodeString,
 				encPath = this.enc_path;
 			} else {
 				if (roadID != this.road_id) {
-					console.log("Error in %s %s", roadID, this.road_id);
-					showPoly(encPath, true);
-					showPoly(this.enc_path, true);
-					showPoly(encodeString, true);
-					errFlag = 1;
+					defectPanel.innerHTML += roadID + "" + this.road_id + '<br>';
+					var defectRoad = {
+						"aroad_id" : roadID,
+						"broad_id" : this.road_id
+					}
+					$.ajax({
+					    type: 'POST',
+					    data: defectRoad,
+					    url: '/adddefect',
+					    dataType: 'JSON'
+					}).done(function( data ) {
+					});
 				}
 			}
 		});
@@ -492,7 +500,14 @@ function wrapper(legno, start, end) {
 		var n = legno;
 		setTimeout(function() {
 		calcRoute(start, end);
-		}, (n-1) * 2500);
+		}, (n-1) * 5000);
+}
+
+function solvewrapper(legno,startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis) {
+                var n = legno;
+                setTimeout(function() {
+			solveEntry (startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis);
+                }, (n-1) * 500);
 }
 
 function calcRoute(start, end) {
@@ -503,13 +518,11 @@ function calcRoute(start, end) {
       provideRouteAlternatives: true,
       avoidHighways: false
   };
-  var csvPanel = document.getElementById('directions-panel');
+var summaryPanel = document.getElementById('ratings-panel');
   directionsService.route(request, function(response, status) {
     if (status == google.maps.DirectionsStatus.OK) {
 	for (var p = 0; p < response.routes.length; p++) {
 	var leg = response.routes[p].legs[0];
-     	var summaryPanel = document.getElementById('ratings-panel');
-	summaryPanel.innerHTML = '';
 	var legseg = 0;
 	for (var i = 0; i < leg.steps.length; i++) {
 		var routeSegment = i + 1;
@@ -531,13 +544,12 @@ function calcRoute(start, end) {
 				midLatLng[j] = path[k].toUrlValue();
 				j++;
 			}
-			solveEntry(startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis);
-			summaryPanel.innerHTML += legseg + startLat + endLat + '<br>';
+			solvewrapper(p,startLat, startLng, midLatLng, endLat, endLng, encodeString, stepDis);
 		}
 	}
 	}
     } else {
-		alert("Exceeded");
+	summaryPanel.innerHTML +=  start +","+ end + '<br>';
 	}
   });
 }

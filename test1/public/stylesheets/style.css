@@ -31,16 +31,16 @@ html, body, #map-canvas {
 	 padding: 5px;
 	}
       #directions-panel {
-        height: 10%;
+        height: 100%;
         float: left;
-        width: 90px;
+        width: 190px;
         overflow: auto;
       }
 
       #ratings-panel {
-        height:140%;
+        height:100%;
         float: right;
-        width: 190px;
+        width: 390px;
         overflow: auto;
       }
 

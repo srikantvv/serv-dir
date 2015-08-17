@@ -76,6 +76,35 @@ router.post('/addStep', function(req, res) {
     });
 });
 
+router.post('/adddefect', function(req, res) {
+
+    // Set our internal DB variable
+    var db = req.db;
+
+    // Set our collection
+    var collection = db.get('dlist');
+
+
+    // Submit to the DB
+    collection.update(
+        {
+		"$or": [
+                        {"aroad_id": req.body.aroad_id, "broad_id": req.body.broad_id},
+                        {"broad_id": req.body.aroad_id, "aroad_id": req.body.broad_id},
+                ]
+
+        },
+        {
+                "$setOnInsert": req.body
+        },
+        {
+                "upsert": true
+        }, function(err, result){
+        res.send(
+            (err === null) ? { msg: '' } : { msg: err }
+        );
+    });
+});
 router.post('/addrel', function(req, res) {
 
     // Set our internal DB variable
@@ -116,6 +145,7 @@ router.get('/steplist', function(req, res) {
     var db = req.db;
     var collection = db.get('steplist');
     collection.find({
+		"start_lat": {$lte: "10"}
 	},{},function(e,docs){
         res.json(docs);
     });
@@ -156,7 +186,7 @@ router.get('/roadlist', function(req, res) {
     var collection = db.get('roadlist');
     collection.find(
 	{
-		"checked": "0"
+		"start_lat": {$lte: "16.5"}
 	},{},function(e,docs){
         res.json(docs);
     });
